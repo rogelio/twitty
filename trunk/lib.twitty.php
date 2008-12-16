@@ -38,7 +38,8 @@ class Twitty {
 		'URL_STATUS' => 'http://twitter.com/statuses/',
 		'URL_USER' => 'http://twitter.com/users/',
 		'URL_DIRECT_MESSAGES' => 'http://twitter.com/direct_messages/',
-		'URL_FRIENDSHIP' => 'http://twitter.com/friendships/'
+		'URL_FRIENDSHIP' => 'http://twitter.com/friendships/',
+		'URL_ACCOUNT' => 'http://twitter.com/account/'
 	);
 	
 	
@@ -349,7 +350,7 @@ class Twitty {
 	 *
 	 * @param mixed $user_a Required. The ID or screen name of the user A.
 	 * @param mixed $user_b Required. The ID or screen name of the user B.	 
-	 * @return array results
+	 * @return boolean results
 	 */		
 	public function friendship_exists($user_a, $user_b) {
 		$API_request = $this->twitty_base_request['URL_FRIENDSHIP'] . 'exists.' . $this->twitty_format;
@@ -357,8 +358,58 @@ class Twitty {
 		if(!empty($user_a) || !empty($user_b)) $API_request .= '?user_a=' . $user_a . '&user_b=' . $user_b;
 
 		return $this->handle($API_request, 1);
-	}				
+	}
 	
+	/**
+	 * Test if supplied user credentials are valid
+	 * 
+	 * @return boolean results
+	 */		
+	public function account_verify_credentials() {
+		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'verify_credentials.' . $this->twitty_format;
+		return $this->handle($API_request, 1);
+	}	
+	
+	/**
+	 * Ends the session of the current user.
+	 * 
+	 * @return array results
+	 */		
+	public function account_end_session() {
+		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'end_session.' . $this->twitty_format;
+		return $this->handle($API_request, 1, 1);
+	}						
+	
+	/**
+	 * Sets which device Twitter delivers updates to for the authenticating user.
+	 * 
+	 * @param string $device Required. Must be one of: sms, im, none.
+	 * @return array results
+	 */		
+	public function account_delivery_device($device) {
+		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'update_delivery_device.' . $this->twitty_format;
+		
+		if(!empty($device)) $API_request .= '?device=' . $device;
+		else $API_request .= '?device=none';
+		
+		return $this->handle($API_request, 1, 1);
+	}
+	
+	/**
+	 * Sets color scheme of the the user page profile.
+	 * 
+	 * @param string $element Required. Where could be the color set to.
+	 * @param string $color Required. Hex value of the color.	 
+	 * @return array results
+	 */		
+	public function account_profile_color($element, $color) {
+		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'update_profile_colors.' . $this->twitty_format;
+		
+		if(!empty($element) || !empty($color)) $API_request .= '?' . $element . '=' . str_replace('#', '' ,$color);
+		
+		return $this->handle($API_request, 1, 1);
+	}	
+		
 	/**
 	 * Set options for the library/API.
 	 *
