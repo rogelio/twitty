@@ -26,14 +26,17 @@ class Twitty {
 		400 => 'Bad Request: your request is invalid',
 		401 => 'Not Authorized: either you need to provide authentication credentials',
 		403 => 'Forbidden: we understand your request, but are refusing to fulfill it.',
-    	404 => 'Not Found: either you\'re requesting an invalid URI or the resource in question doesn\'t exist (ex: no such user).',
-    	500 => 'Internal Server Error: we did something wrong.  Please post to the group about it and the Twitter team will investigate.',
-    	502 => 'Bad Gateway: returned if Twitter is down or being upgraded.',
-	    503 => 'Service Unavailable: the Twitter servers are up, but are overloaded with requests.  Try again later.');
+		404 => 'Not Found: either you\'re requesting an invalid URI or the resource in question doesn\'t exist (ex: no such user).',
+		500 => 'Internal Server Error: we did something wrong.  Please post to the group about it and the Twitter team will investigate.',
+		502 => 'Bad Gateway: returned if Twitter is down or being upgraded.',
+		503 => 'Service Unavailable: the Twitter servers are up, but are overloaded with requests.  Try again later.');
 		
 	private $twitty_format = 'json';
 	
-	private $twitty_base_request = array('URL_STATUS' => 'http://twitter.com/statuses/');
+	private $twitty_base_request = array(
+		'URL_STATUS' => 'http://twitter.com/statuses/',
+		'URL_USER' => 'http://twitter.com/users/'
+	);
 	
 	
 	/**
@@ -44,14 +47,14 @@ class Twitty {
 	public function status_public_timeline() {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'public_timeline.' . $this->twitty_format;
 		
-		return	$this->handle($API_request);
+		return $this->handle($API_request);
 	}
 
 	/**
 	 * Returns the 20 most recent updates from the authenticated user and the user's friends.
 	 *
 	 * @param integer $count Optional. Specifies the number of updates to retrieve. $count < 200.
- 	 * @param integer $page Optional. Specifies the page of updates, 20/page.
+	 * @param integer $page Optional. Specifies the page of updates, 20/page.
 	 * @param date $since Optional. Narrows the results up to 24 hours old.
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
 	 * @return array results
@@ -69,7 +72,7 @@ class Twitty {
 		
 		if($num_args >= 1) $API_request .= '?' . implode('&', $param);
 
-		return	$this->handle($API_request, 1);
+		return $this->handle($API_request, 1);
 	}
 	
 	/**
@@ -77,7 +80,7 @@ class Twitty {
 	 *
 	 * @param mixed $id Optional. Specifies the ID or screen name of the user for whom to return the timeline.
 	 * @param integer $count Optional. Specifies the number of updates to retrieve. $count < 200.	 
- 	 * @param integer $page Optional. Specifies the page of updates, 20/page.
+	 * @param integer $page Optional. Specifies the page of updates, 20/page.
 	 * @param date $since Optional. Narrows the results up to 24 hours old.
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
 	 * @return array results
@@ -96,7 +99,7 @@ class Twitty {
 		
 		if($num_args >= 1) $API_request .= '?' . implode('&', $param);
 
-		return	$this->handle($API_request, 1);
+		return $this->handle($API_request, 1);
 	}
 	
 	/**
@@ -111,8 +114,8 @@ class Twitty {
 		if(!empty($id)) $API_request .= $id . '.' .  $this->twitty_format;
 		else $API_request = $this->twitty_raise['MISSING_ID'];
 
-		return	$this->handle($API_request);
-	}		
+		return $this->handle($API_request);
+	}
 	
 	/**
 	 * Sets an update to an authenticated user only.
@@ -133,13 +136,13 @@ class Twitty {
 		
 		if($num_args >= 1) $API_request .= '?' . implode('&', $param);
 
-		return	$this->handle($API_request, 1, 1);
+		return $this->handle($API_request, 1, 1);
 	}
 	
 	/**
 	 * Returns the 20 most recent replies.
 	 *
- 	 * @param integer $page Optional. Specifies the page of updates, 20/page.
+	 * @param integer $page Optional. Specifies the page of updates, 20/page.
 	 * @param date $since Optional. Narrows the results up to 24 hours old.
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
 	 * @return array results
@@ -156,7 +159,7 @@ class Twitty {
 		
 		if($num_args >= 1) $API_request .= '?' . implode('&', $param);
 
-		return	$this->handle($API_request, 1);
+		return $this->handle($API_request, 1);
 	}
 		
 	/**
@@ -171,17 +174,76 @@ class Twitty {
 		if(!empty($id)) $API_request .= $id . '.' .  $this->twitty_format;
 		else $API_request = $this->twitty_raise['MISSING_ID'];
 
-		return	$this->handle($API_request, 1, 1);
-	}	
+		return $this->handle($API_request, 1, 1);
+	}
+
+	/**
+	 * Returns up to 100 of the authenticating user's friends.
+	 *
+	 * @param mixed $id Optional. ID or screen name of the user
+	 * @param integer $page Optional. Specifies the page of updates, 100/page.
+	 * @return array results
+	 */		
+	public function user_friends($id = NULL, $page = NULL) {
+		$API_request = $this->twitty_base_request['URL_STATUS'] . 'friends.' . $this->twitty_format;
+		$param = array();
 		
+		if(!empty($id)) $param[] = 'id=' . $id;	
+		if(!empty($page)) $param[] = 'page=' . $page;	
+				
+		$num_args = count(trim($param));
+		
+		if($num_args >= 1) $API_request .= '?' . implode('&', $param);
+
+		return $this->handle($API_request, 1);
+	}
+	
+	/**
+	 * Returns up to 100 of the authenticating user's followers.
+	 *
+	 * @param mixed $id Optional. ID or screen name of the user
+	 * @param integer $page Optional. Specifies the page of updates, 100/page.
+	 * @return array results
+	 */		
+	public function user_followers($id = NULL, $page = NULL) {
+		$API_request = $this->twitty_base_request['URL_STATUS'] . 'followers.' . $this->twitty_format;
+		$param = array();
+		
+		if(!empty($id)) $param[] = 'id=' . $id;	
+		if(!empty($page)) $param[] = 'page=' . $page;	
+				
+		$num_args = count(trim($param));
+		
+		if($num_args >= 1) $API_request .= '?' . implode('&', $param);
+
+		return $this->handle($API_request, 1);
+	}
+		
+	/**
+	 * Returns extended information of a given user ID or screen name.
+	 *
+	 * @param mixed $id Optional. ID or screen name of the user
+	 * @param integer $page Optional. Specifies the page of updates, 100/page.
+	 * @return array results
+	 */		
+	public function user_show($userIdentifier = NULL) {
+		$API_request = $this->twitty_base_request['URL_USER'] . 'show';
+		
+		if(eregi("^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$", $userIdentifier)) 
+			$API_request .= '.' . $this->twitty_format . '?' . 'email=' . $userIdentifier;
+		else $API_request .= '/' . $userIdentifier . '.' . $this->twitty_format;	
+
+		return $this->handle($API_request, 1);
+	}
+	
 	/**
 	 * Set options for the library/API.
 	 *
 	 * @param string $option The option name.
- 	 * @param string $value The value of the option name.
+	 * @param string $value The value of the option name.
 	 * @return string option.
 	 */	
-	public function	set_option($option = NULL, $value = NULL) {
+	public function set_option($option = NULL, $value = NULL) {
 		$option = strtoupper(trim($option));
 		
 		if(array_key_exists($option, $this->twitty_option)) $this->twitty_option[$option] = $value;
