@@ -15,10 +15,11 @@ class Twitty {
 		'TWITTY_' => '');
 		
 	private $twitty_raise = array(
-		'INVALID_OPTION' => ' is invalid for option!',
-		'INVALID_FORMAT' => 'Invalid format!',
-		'UNSUPPORTED_FORMAT' => ' is not supported yet!',
-		'MISSING_ID' => 'ID is required!');
+		'INVALID_OPTION' => ' is invalid for option.',
+		'INVALID_FORMAT' => 'Invalid format.',
+		'UNSUPPORTED_FORMAT' => ' is not supported yet.',
+		'MISSING_ID' => 'ID is required.',
+		'CHARS_LIMIT' => 'Message length must not be greater than 140 characters.');
 		
 	private $twitty_Http_code = array (
 		200 => 'OK: everything went awesome.',
@@ -35,7 +36,9 @@ class Twitty {
 	
 	private $twitty_base_request = array(
 		'URL_STATUS' => 'http://twitter.com/statuses/',
-		'URL_USER' => 'http://twitter.com/users/'
+		'URL_USER' => 'http://twitter.com/users/',
+		'URL_DIRECT_MESSAGES' => 'http://twitter.com/direct_messages/',
+		'URL_FRIENDSHIP' => 'http://twitter.com/friendships/'
 	);
 	
 	
@@ -235,6 +238,126 @@ class Twitty {
 
 		return $this->handle($API_request, 1);
 	}
+	
+	/**
+	 * Returns the 20 most recent direct messages by the authenticating user.
+	 *
+	 * @param integer $page Optional. Specifies the page of updates, 20/page.
+	 * @param date $since Optional. Narrows the results up to 24 hours old.
+	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
+	 * @return array results
+	 */		
+	public function direct_messages($page = NULL, $since = NULL, $since_id = NULL) {
+		$API_request = substr($this->twitty_base_request['URL_DIRECT_MESSAGES'], 0, -1) . '.' . $this->twitty_format;
+		$param = array();
+		
+		if(!empty($page)) $param[] = 'page=' . $page;	
+		if(!empty($since)) $param[] = 'since=' . urlencode($since);
+		if(!empty($since_id)) $param[] = 'since_id=' . $since_id;
+		
+		$num_args = count(trim($param));
+		
+		if($num_args >= 1) $API_request .= '?' . implode('&', $param);
+
+		return $this->handle($API_request, 1);
+	}
+	
+	/**
+	 * Returns the 20 most recent direct messages sent by the authenticating user.
+	 *
+	 * @param integer $page Optional. Specifies the page of updates, 20/page.
+	 * @param date $since Optional. Narrows the results up to 24 hours old.
+	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
+	 * @return array results
+	 */		
+	public function direct_messages_sent($page = NULL, $since = NULL, $since_id = NULL) {
+		$API_request = $this->twitty_base_request['URL_DIRECT_MESSAGES'] . 'sent.' . $this->twitty_format;
+		$param = array();
+		
+		if(!empty($page)) $param[] = 'page=' . $page;	
+		if(!empty($since)) $param[] = 'since=' . urlencode($since);
+		if(!empty($since_id)) $param[] = 'since_id=' . $since_id;
+		
+		$num_args = count(trim($param));
+		
+		if($num_args >= 1) $API_request .= '?' . implode('&', $param);
+
+		return $this->handle($API_request, 1);
+	}
+	
+	/**
+	 * Sends a new direct message to the specified user from the authenticating user
+	 *
+	 * @param mixed $user Required. The recipient.
+	 * @param string $text Required. The message.
+	 * @return array results
+	 */		
+	public function direct_messages_new($user, $text) {
+		$API_request = $this->twitty_base_request['URL_DIRECT_MESSAGES'] . 'new.' . $this->twitty_format;
+		
+		if(strlen(trim($text)) <= 140)	$API_request .= '?user=' . $user . '&text=' . urlencode($text);
+		else $API_request = $this->twitty_raise['CHARS_LIMIT'];
+
+		return $this->handle($API_request, 1, 1);
+	}
+	
+	/**
+	 * Deletes the direct message specified in the required ID parameter.
+	 *
+	 * @param integer $id Required. The ID of the direct message.
+	 * @return array results
+	 */		
+	public function direct_messages_destroy($id) {
+		$API_request = $this->twitty_base_request['URL_DIRECT_MESSAGES'] . 'destroy/';
+		
+		if(!empty($id)) $API_request .= $id . '.' . $this->twitty_format;
+
+		return $this->handle($API_request, 1, 1);
+	}
+	
+	/**
+	 * Befriends the user specified in the ID parameter as the authenticating user.
+	 *
+	 * @param mixed $id Required. The ID or the screen name of the user.
+	 * @param boolean $follow Optional. Enable notifications for the target user in addition to becoming friends.
+	 * @return array results
+	 */		
+	public function friendship_create($id, $follow = FALSE) {
+		$API_request = $this->twitty_base_request['URL_FRIENDSHIP'] . 'create/' . $id . '.' . $this->twitty_format;
+		
+		if($follow) $API_request .= '?follow=' . $follow;
+
+		return $this->handle($API_request, 1, 1);
+	}
+	
+	/**
+	 * Destroys the friendship with the user specified.
+	 *
+	 * @param mixed $id Required. The ID or screen name of the user.
+	 * @return array results
+	 */		
+	public function friendship_destroy($id) {
+		$API_request = $this->twitty_base_request['URL_FRIENDSHIP'] . 'destroy/';
+		
+		if(!empty($id)) $API_request .= $id . '.' . $this->twitty_format;
+
+		return $this->handle($API_request, 1, 1);
+	}
+	
+	/**
+	 * Tests if a friendship exists between two users.
+	 *
+	 * @param mixed $user_a Required. The ID or screen name of the user A.
+	 * @param mixed $user_b Required. The ID or screen name of the user B.	 
+	 * @return array results
+	 */		
+	public function friendship_exists($user_a, $user_b) {
+		$API_request = $this->twitty_base_request['URL_FRIENDSHIP'] . 'exists.' . $this->twitty_format;
+		
+		if(!empty($user_a) || !empty($user_b)) $API_request .= '?user_a=' . $user_a . '&user_b=' . $user_b;
+
+		return $this->handle($API_request, 1);
+	}				
 	
 	/**
 	 * Set options for the library/API.
