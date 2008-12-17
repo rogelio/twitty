@@ -15,11 +15,12 @@ class Twitty {
 		'TWITTY_' => '');
 		
 	private $twitty_raise = array(
-		'INVALID_OPTION' => ' is invalid for option.',
+		'CHARS_LIMIT' => 'Message length must not be greater than 140 characters.',
 		'INVALID_FORMAT' => 'Invalid format.',
-		'UNSUPPORTED_FORMAT' => ' is not supported yet.',
+		'INVALID_OPTION' => ' is invalid for option.',
+		'INVALID_PARAM' => 'Invalid or missing parameter.',
 		'MISSING_ID' => 'ID is required.',
-		'CHARS_LIMIT' => 'Message length must not be greater than 140 characters.');
+		'UNSUPPORTED_FORMAT' => ' is not supported yet.');
 		
 	private $twitty_Http_code = array (
 		200 => 'OK: everything went awesome.',
@@ -135,7 +136,7 @@ class Twitty {
 		
 		if(!empty($status)) $param[] = 'status=' . urlencode($status);
 		if(!empty($in_reply_to_status_id)) $param[] = 'in_reply_to_status_id=' . $in_reply_to_status_id;
-		
+		if(strlen(trim($status)) > 140) return $this->error('CHARS_LIMIT');
 		$num_args = count(trim($param));
 		
 		if($num_args >= 1) $API_request .= '?' . implode('&', $param);
@@ -176,7 +177,6 @@ class Twitty {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'destroy/';
 		
 		if(!empty($id)) $API_request .= $id . '.' .  $this->twitty_format;
-		else $API_request = $this->twitty_raise['MISSING_ID'];
 
 		return $this->handle($API_request, 1, 1);
 	}
@@ -297,7 +297,7 @@ class Twitty {
 		$API_request = $this->twitty_base_request['URL_DIRECT_MESSAGES'] . 'new.' . $this->twitty_format;
 		
 		if(strlen(trim($text)) <= 140)	$API_request .= '?user=' . $user . '&text=' . urlencode($text);
-		else $API_request = $this->twitty_raise['CHARS_LIMIT'];
+		else return $this->error('CHARS_LIMIT');
 
 		return $this->handle($API_request, 1, 1);
 	}
@@ -404,8 +404,16 @@ class Twitty {
 	 */		
 	public function account_profile_color($element, $color) {
 		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'update_profile_colors.' . $this->twitty_format;
+		$element = strtoupper(trim($element));
+		$param = array(
+			'BACKGROUND' => 'profile_background_color',
+			'TEXT' => 'profile_text_color',
+			'LINK' => 'profile_link_color',
+			'SIDEBARFILL' => 'profile_sidebar_fill_color',
+			'SIDEBARBORDER' => 'profile_sidebar_border_color');
 		
-		if(!empty($element) || !empty($color)) $API_request .= '?' . $element . '=' . str_replace('#', '' ,$color);
+		if(array_key_exists($element, $param)) $API_request .= '?' . $param[$element] . '=' . str_replace('#', '' ,$color);
+		else return $this->error('INVALID_PARAM');
 		
 		return $this->handle($API_request, 1, 1);
 	}	
@@ -421,7 +429,7 @@ class Twitty {
 		$option = strtoupper(trim($option));
 		
 		if(array_key_exists($option, $this->twitty_option)) $this->twitty_option[$option] = $value;
-		else echo $option . $this->twitty_raise['INVALID_OPTION'];
+		else echo $option . $this->error('INVALID_OPTION');
 		
 		return $this->twitty_option[$option];
 	}
@@ -441,6 +449,12 @@ class Twitty {
 		curl_close($curl);
 	
 		return $this->result($data);
+	}
+	
+	private function error($code) {
+		if(is_int($code)) $error = $this->twitty_Http_code[$code];
+		else $error = $this->twitty_raise[$code];
+		echo $error;
 	}
 	
 	private function result($data) {
