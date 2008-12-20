@@ -1,6 +1,6 @@
 <?php
 /**
- * Another Twitter API library for PHP
+ * Extended Twitter API library for PHP
  * 
  * Accessible at http://blog.demilane.com
  *
@@ -10,7 +10,7 @@
 
 class Twitty {
 	
-	private $twitty_option = array(
+	public $twitty_option = array(
 		'USERPWD' => '',
 		'SHOW_HEADERS' => 0);
 		
@@ -25,8 +25,11 @@ class Twitty {
 		'INVALID_FORMAT' => 'Invalid format.',
 		'INVALID_OPTION' => ' is invalid for option.',
 		'INVALID_PARAM' => 'Invalid or missing parameter.',
+		'DATE_FORMAT' => 'Date format is [day][month][numerical day][hh:mm:ss][year] ex: Thu Dec 18 08:28:37 2008',
+		'NOT_INT' => 'Invalid parameter, parameter must be Integer',
 		'MISSING_ID' => 'ID is required.',
-		'UNSUPPORTED_FORMAT' => ' is not supported yet.');
+		'UNSUPPORTED_FORMAT' => ' is not supported yet.',
+		'ON_DEV' => 'Method still in development.');
 		
 	private $twitty_Http_code = array (
 		200 => 'OK: everything went awesome.',
@@ -52,6 +55,9 @@ class Twitty {
 		'URL_BLOCK' => 'http://twitter.com/blocks/',
 		'URL_HELP' => 'http://twitter.com/help/');
 	
+	public function __construct($username = NULL, $password = NULL) {
+		$this->twitty_option['USERPWD'] = stripslashes(trim($username)) . ':' . stripslashes(trim($password));
+	}
 	
 	/**
 	 * Returns the 20 most recent updates from non-protected users.
@@ -60,7 +66,6 @@ class Twitty {
 	 */	
 	public function status_public_timeline() {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'public_timeline.' . $this->twitty_format;
-		
 		return $this->handle($API_request);
 	}
 
@@ -73,13 +78,14 @@ class Twitty {
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
 	 * @return array results
 	 */		
-	public function status_friends_timeline($count = NULL, $page = NULL, $since = NULL, $since_id = NULL) {
+	public function status_friends_timeline($count = null, $page = null, $since = null, $since_id = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'friends_timeline.' . $this->twitty_format;
 		$param = array();
-		
-		if(!empty($count)) $param[] = 'count=' . $count;	
-		if(!empty($page)) $param[] = 'page=' . $page;	
-		if(!empty($since)) $param[] = 'since=' . urlencode($since);
+		if(!empty($since) && ($time = strtotime($since)) === false) return $this->error('DATE_FORMAT');
+		if(is_string($count) || is_string($page) || is_string($since_id)) return $this->error('NOT_INT');
+		if(!empty($count)) $param[] = 'count=' . $count;
+		if(!empty($page)) $param[] = 'page=' . $page;
+		if(!empty($since)) $param[] = 'since=' . urlencode(date('D M d h:i:s O Y', $time));
 		if(!empty($since_id)) $param[] = 'since_id=' . $since_id;
 				
 		$num_args = count(trim($param));
@@ -99,16 +105,17 @@ class Twitty {
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
 	 * @return array results
 	 */		
-	public function status_user_timeline($id= NULL, $count = NULL, $page = NULL, $since = NULL, $since_id = NULL) {
+	public function status_user_timeline($id= null, $count = null, $page = null, $since = null, $since_id = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'user_timeline.' . $this->twitty_format;
 		$param = array();
-		
+		if(!empty($since) && ($time = strtotime($since)) === false) return $this->error('DATE_FORMAT');
+		if(is_string($count) || is_string($page) || is_string($since_id)) return $this->error('NOT_INT');
 		if(!empty($id)) $param[] = 'id=' . $id;
-		if(!empty($count)) $param[] = 'count=' . $count;	
-		if(!empty($page)) $param[] = 'page=' . $page;	
-		if(!empty($since)) $param[] = 'since=' . urlencode($since);
-		if(!empty($since_id)) $param[] = 'since_id=' . $since_id;
-		
+		if(!empty($count)) $param[] = 'count=' . $count;
+		if(!empty($page)) $param[] = 'page=' . $page;
+		if(!empty($since)) $param[] = 'since=' . urlencode(date('D M d h:i:s O Y', $time));
+		if(!empty($since_id)) $param[] = 'since_id=' . $since_id;		
+
 		$num_args = count(trim($param));
 		
 		if($num_args >= 1) $API_request .= '?' . implode('&', $param);
@@ -125,8 +132,8 @@ class Twitty {
 	public function status_show($id) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'show/';
 		
-		if(!empty($id)) $API_request .= $id . '.' .  $this->twitty_format;
-		else $API_request = $this->twitty_raise['MISSING_ID'];
+		if(!empty($id) && is_int($id)) $API_request .= $id . '.' .  $this->twitty_format;
+		else $this->error('NOT_INT');
 
 		return $this->handle($API_request);
 	}
@@ -136,16 +143,16 @@ class Twitty {
 	 *
 	 * @param string $status Required The text of your status update, must < 140 characters.
 	 * @param integer $in_reply_to_status_id Optional. The ID of an existing update that you want reply to.	 
-	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
 	 * @return array results
 	 */		
-	public function status_update($status, $in_reply_to_status_id = NULL) {
+	public function status_update($status, $in_reply_to_status_id = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'update.' . $this->twitty_format;
 		$param = array();
-		
+
+		if(strlen(trim($status)) > 140) return $this->error('MSG_LIMIT');		
 		if(!empty($status)) $param[] = 'status=' . urlencode($status);
 		if(!empty($in_reply_to_status_id)) $param[] = 'in_reply_to_status_id=' . $in_reply_to_status_id;
-		if(strlen(trim($status)) > 140) return $this->error('MSG_LIMIT');
+
 		$num_args = count(trim($param));
 		
 		if($num_args >= 1) $API_request .= '?' . implode('&', $param);
@@ -161,13 +168,14 @@ class Twitty {
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
 	 * @return array results
 	 */		
-	public function status_replies($page = NULL, $since = NULL, $since_id = NULL) {
+	public function status_replies($page = null, $since = null, $since_id = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'replies.' . $this->twitty_format;
 		$param = array();
-		
-		if(!empty($page)) $param[] = 'page=' . $page;	
-		if(!empty($since)) $param[] = 'since=' . urlencode($since);
-		if(!empty($since_id)) $param[] = 'since_id=' . $since_id;
+		if(!empty($since) && ($time = strtotime($since)) === false) return $this->error('DATE_FORMAT');
+		if(is_string($page) || is_string($since_id)) return $this->error('NOT_INT');
+		if(!empty($page)) $param[] = 'page=' . $page;
+		if(!empty($since)) $param[] = 'since=' . urlencode(date('D M d h:i:s O Y', $time));
+		if(!empty($since_id)) $param[] = 'since_id=' . $since_id;			
 		
 		$num_args = count(trim($param));
 		
@@ -185,8 +193,9 @@ class Twitty {
 	public function status_destroy($id) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'destroy/';
 		
-		if(!empty($id)) $API_request .= $id . '.' .  $this->twitty_format;
-
+		if(!empty($id) && is_int($id)) $API_request .= $id . '.' .  $this->twitty_format;
+		else $this->error('NOT_INT');
+		
 		return $this->handle($API_request, 1, 1);
 	}
 
@@ -197,10 +206,11 @@ class Twitty {
 	 * @param integer $page Optional. Specifies the page of updates, 100/page.
 	 * @return array results
 	 */		
-	public function user_friends($id = NULL, $page = NULL) {
+	public function user_friends($id = null, $page = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'friends.' . $this->twitty_format;
 		$param = array();
 		
+		if(is_string($page)) return $this->error('NOT_INT');		
 		if(!empty($id)) $param[] = 'id=' . $id;	
 		if(!empty($page)) $param[] = 'page=' . $page;	
 				
@@ -218,10 +228,11 @@ class Twitty {
 	 * @param integer $page Optional. Specifies the page of updates, 100/page.
 	 * @return array results
 	 */		
-	public function user_followers($id = NULL, $page = NULL) {
+	public function user_followers($id = null, $page = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'followers.' . $this->twitty_format;
 		$param = array();
 		
+		if(is_string($page)) return $this->error('NOT_INT');		
 		if(!empty($id)) $param[] = 'id=' . $id;	
 		if(!empty($page)) $param[] = 'page=' . $page;	
 				
@@ -235,13 +246,13 @@ class Twitty {
 	/**
 	 * Returns extended information of a given user ID or screen name.
 	 *
-	 * @param mixed $id Optional. ID or screen name or email of the user
-	 * @param integer $page Optional. Specifies the page of updates, 100/page.
+	 * @param mixed $id Required. ID or screen name or email of the user
 	 * @return array results
 	 */		
-	public function user_show($userIdentifier = NULL) {
+	public function user_show($userIdentifier = null) {
 		$API_request = $this->twitty_base_request['URL_USER'] . 'show';
 		
+		if(empty($userIdentifier)) return $this->error('INVALID_PARAM');
 		if(eregi("^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$", $userIdentifier)) 
 			$API_request .= '.' . $this->twitty_format . '?' . 'email=' . $userIdentifier;
 		else $API_request .= '/' . $userIdentifier . '.' . $this->twitty_format;	
@@ -257,13 +268,15 @@ class Twitty {
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
 	 * @return array results
 	 */		
-	public function direct_messages($page = NULL, $since = NULL, $since_id = NULL) {
+	public function direct_messages($page = null, $since = null, $since_id = null) {
 		$API_request = substr($this->twitty_base_request['URL_DIRECT_MESSAGES'], 0, -1) . '.' . $this->twitty_format;
 		$param = array();
-		
-		if(!empty($page)) $param[] = 'page=' . $page;	
-		if(!empty($since)) $param[] = 'since=' . urlencode($since);
-		if(!empty($since_id)) $param[] = 'since_id=' . $since_id;
+			
+		if(!empty($since) && ($time = strtotime($since)) === false) return $this->error('DATE_FORMAT');
+		if(is_string($page) || is_string($since_id)) return $this->error('NOT_INT');
+		if(!empty($page)) $param[] = 'page=' . $page;
+		if(!empty($since)) $param[] = 'since=' . urlencode(date('D M d h:i:s O Y', $time));
+		if(!empty($since_id)) $param[] = 'since_id=' . $since_id;			
 		
 		$num_args = count(trim($param));
 		
@@ -280,12 +293,14 @@ class Twitty {
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
 	 * @return array results
 	 */		
-	public function direct_messages_sent($page = NULL, $since = NULL, $since_id = NULL) {
+	public function direct_message_sent($page = null, $since = null, $since_id = null) {
 		$API_request = $this->twitty_base_request['URL_DIRECT_MESSAGES'] . 'sent.' . $this->twitty_format;
 		$param = array();
 		
-		if(!empty($page)) $param[] = 'page=' . $page;	
-		if(!empty($since)) $param[] = 'since=' . urlencode($since);
+		if(!empty($since) && ($time = strtotime($since)) === false) return $this->error('DATE_FORMAT');
+		if(is_string($page) || is_string($since_id)) return $this->error('NOT_INT');
+		if(!empty($page)) $param[] = 'page=' . $page;
+		if(!empty($since)) $param[] = 'since=' . urlencode(date('D M d h:i:s O Y', $time));
 		if(!empty($since_id)) $param[] = 'since_id=' . $since_id;
 		
 		$num_args = count(trim($param));
@@ -302,9 +317,10 @@ class Twitty {
 	 * @param string $text Required. The message.
 	 * @return array results
 	 */		
-	public function direct_messages_new($user, $text) {
+	public function direct_message_new($user, $text) {
 		$API_request = $this->twitty_base_request['URL_DIRECT_MESSAGES'] . 'new.' . $this->twitty_format;
 		
+		if(empty($user) || empty($text)) return $this->error('INVALID_PARAM');
 		if(strlen(trim($text)) <= 140)	$API_request .= '?user=' . $user . '&text=' . urlencode($text);
 		else return $this->error('MSG_LIMIT');
 
@@ -317,10 +333,12 @@ class Twitty {
 	 * @param integer $id Required. The ID of the direct message.
 	 * @return array results
 	 */		
-	public function direct_messages_destroy($id) {
+	public function direct_message_destroy($id) {
 		$API_request = $this->twitty_base_request['URL_DIRECT_MESSAGES'] . 'destroy/';
 		
 		if(!empty($id)) $API_request .= $id . '.' . $this->twitty_format;
+		else return $this->error('INVALID_PARAM');
+		if(is_string($id)) return $this->error('NOT_INT');
 
 		return $this->handle($API_request, 1, 1);
 	}
@@ -333,9 +351,12 @@ class Twitty {
 	 * @return array results
 	 */		
 	public function friendship_create($id, $follow = FALSE) {
-		$API_request = $this->twitty_base_request['URL_FRIENDSHIP'] . 'create/' . $id . '.' . $this->twitty_format;
+		$API_request = $this->twitty_base_request['URL_FRIENDSHIP'] . 'create/';
 		
-		if($follow) $API_request .= '?follow=' . $follow;
+		if(empty($id)) return $this->error('INVALID_PARAM');		
+		if(!empty($id)) $API_request .= $id . '.' . $this->twitty_format;
+		
+		if($follow) $follow = TRUE; $API_request .= '?follow=' . $follow;
 
 		return $this->handle($API_request, 1, 1);
 	}
@@ -349,6 +370,7 @@ class Twitty {
 	public function friendship_destroy($id) {
 		$API_request = $this->twitty_base_request['URL_FRIENDSHIP'] . 'destroy/';
 		
+		if(empty($id)) return $this->error('INVALID_PARAM');
 		if(!empty($id)) $API_request .= $id . '.' . $this->twitty_format;
 
 		return $this->handle($API_request, 1, 1);
@@ -395,7 +417,7 @@ class Twitty {
 	 * @param string $device Required. Must be one of: sms, im, none.
 	 * @return array results
 	 */		
-	public function account_delivery_device($device) {
+	public function account_delivery_device($device = 'none') {
 		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'update_delivery_device.' . $this->twitty_format;
 		
 		if(!empty($device)) $API_request .= '?device=' . $device;
@@ -433,13 +455,13 @@ class Twitty {
 	 * @param string $image Required. Where could be the color set to.
 	 * @return array results
 	 */		
-	public function account_profile_image($image) {
+	public function account_profile_image($image = null) {
 		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'update_profile_image.' . $this->twitty_format;
 
-		if(!empty($image)) $API_request .= '?image=' . $image['file']['name'];
-		else return $this->error('INVALID_PARAM');
+		if(!empty($image)) $API_request .= '?image=';
+		//else return $this->error('INVALID_PARAM');
 		
-		return $this->handle($API_request, 1, 1);
+		return $this->error('ON_DEV');
 	}
 	
 	/**
@@ -448,13 +470,13 @@ class Twitty {
 	 * @param string $image Required. Where could be the color set to.
 	 * @return array results
 	 */		
-	public function account_profile_background_image($image) {
+	public function account_profile_bg_image($image = null) {
 		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'update_profile_background_image.' . $this->twitty_format;
 
 		if(!empty($image)) $API_request .= '?image=' . $image['file']['name'];
-		else return $this->error('INVALID_PARAM');
+		//else return $this->error('INVALID_PARAM');
 		
-		return $this->handle($API_request, 1, 1);
+		return $this->error('ON_DEV');
 	}
 
 	/**
@@ -506,7 +528,7 @@ class Twitty {
 	 * @param integer $page Optional. Specifies the page of updates, 20/page.
 	 * @return array results
 	 */		
-	public function favorites($id = NULL, $page = NULL) {
+	public function favorites($id = null, $page = null) {
 		$API_request = substr($this->twitty_base_request['URL_FAVORITES'], 0, -1);
 
 		if(!empty($id)) $API_request .= '/' . $id . '.' . $this->twitty_format;// . ( empty($page) ? '' : '?page=' . $page);
@@ -564,6 +586,7 @@ class Twitty {
 		if(!empty($id)) $API_request .= $id . '.' .  $this->twitty_format;
 		return $this->handle($API_request, 1, 1);
 	}
+	
 	/**
 	 * Blocks a user to the authenticating user.
 	 *
@@ -615,7 +638,7 @@ class Twitty {
 	 * @param string $value The value of the option name.
 	 * @return string option.
 	 */	
-	public function set_option($option = NULL, $value = NULL) {
+	public function set_option($option = null, $value = null) {
 		$option = strtoupper(trim($option));
 		
 		if(array_key_exists($option, $this->twitty_option)) $this->twitty_option[$option] = $value;
@@ -635,13 +658,22 @@ class Twitty {
 	 */	
 	private function handle($request, $require_auth = 0, $post = 0, $image = '') {
 		$curl = curl_init();
+		$basename ='';
 		if($require_auth) curl_setopt($curl, CURLOPT_USERPWD, $this->twitty_option['USERPWD']);
 		if(!empty($image)):
-			$file = '@' . $image;
-			curl_setopt($curl, CURLOPT_POSTFIELDS, $file);
+			//$file = '@' . $image;
+			$basename = basename($image);
+			$fo = fopen($image,'r');
+			curl_setopt($curl, CURLOPT_UPLOAD, 1);
+			curl_setopt($curl, CURLOPT_TIMEOUT, 300);
+			curl_setopt($curl, CURLE_OPERATION_TIMEOUTED, 300);
+			curl_setopt($curl, CURLOPT_INFILE, $fo);
+			curl_setopt($curl, CURLOPT_INFILESIZE, filesize($image));
+			fclose($fo);
+			//curl_setopt($curl, CURLOPT_POSTFIELDS, $file);
 		endif;		
 		curl_setopt($curl, CURLOPT_POST, $post);
-		curl_setopt($curl, CURLOPT_URL, $request);
+		curl_setopt($curl, CURLOPT_URL, $request.$basename);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_HEADER, $this->twitty_option['SHOW_HEADERS']);
 		
@@ -650,10 +682,20 @@ class Twitty {
 		curl_close($curl);
 		
 		if($httpCode == 200) return $this->result($data);
-		else return $this->error($httpCode);
-
+		else return $this->header($httpCode);
 	}
 	
+	private function image($img) {
+		$fn = basename($src);
+		$fp = fopen($src,"r");
+		curl_setopt($ch, CURLOPT_UPLOAD, 1);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+		curl_setopt($ch, CURLE_OPERATION_TIMEOUTED, 300);
+		curl_setopt($ch, CURLOPT_URL, $dest);
+		curl_setopt($ch, CURLOPT_INFILE, $fp);
+		curl_setopt($ch, CURLOPT_INFILESIZE, filesize($src));
+		fclose ($fp);
+	}
 	/**
 	 * The results ...
 	 *
@@ -667,8 +709,18 @@ class Twitty {
 		elseif($this->twitty_format == 'rss') $result = 'RSS' . $this->twitty_raise['UNSUPPORTED_FORMAT'];
 		elseif($this->twitty_format == 'atom') $result = 'ATOM' . $this->twitty_raise['UNSUPPORTED_FORMAT'];
 		else $result = $this->twitty_raise['INVALID_FORMAT'];
-				
 		return $result;
+	}
+	
+	/**
+	 * This will show the Headers of the last request ...
+	 *
+	 * @param mixed $code The codee of the error.
+	 */		
+	private function header($code) {
+		if(is_int($code)) $error = $this->twitty_Http_code[$code];
+		else $error = $this->twitty_raise[$code];
+		echo '<br />'.$error;
 	}
 	
 	/**
@@ -680,7 +732,7 @@ class Twitty {
 		if(is_int($code)) $error = $this->twitty_Http_code[$code];
 		else $error = $this->twitty_raise[$code];
 		echo '<br />'.$error;
-	}	
+	}		
 }
 
 
