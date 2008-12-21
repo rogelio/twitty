@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2008
  * @link http://demilane.com
  * @license http://www.opensource.org/licenses/bsd-license.php
- * @version 1.0-beta
+ * @version 1.0
  */
 /**
  * Copyright (c) 2008, Rogelio Calamaya of Demilane.
@@ -760,6 +760,4 @@ class Twitty {
 		echo '<br />'.$error;
 	}		
 }
-
-
 ?>
