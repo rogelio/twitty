@@ -31,7 +31,7 @@
  * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
  * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
  
 class Twitty {
@@ -88,7 +88,7 @@ class Twitty {
 	/**
 	 * Returns the 20 most recent updates from non-protected users.
 	 *
-	 * @return array results
+	 * @return object results
 	 */	
 	public function status_public_timeline() {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'public_timeline.' . $this->twitty_format;
@@ -102,7 +102,7 @@ class Twitty {
 	 * @param integer $page Optional. Specifies the page of updates, 20/page.
 	 * @param date $since Optional. Narrows the results up to 24 hours old.
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function status_friends_timeline($count = null, $page = null, $since = null, $since_id = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'friends_timeline.' . $this->twitty_format;
@@ -129,7 +129,7 @@ class Twitty {
 	 * @param integer $page Optional. Specifies the page of updates, 20/page.
 	 * @param date $since Optional. Narrows the results up to 24 hours old.
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function status_user_timeline($id= null, $count = null, $page = null, $since = null, $since_id = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'user_timeline.' . $this->twitty_format;
@@ -153,7 +153,7 @@ class Twitty {
 	 * Returns a single status.
 	 *
 	 * @param integer $id Required. The numerical ID of the status you're trying to retrieve
-	 * @return array results
+	 * @return object results
 	 */		
 	public function status_show($id) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'show/';
@@ -169,7 +169,7 @@ class Twitty {
 	 *
 	 * @param string $status Required The text of your status update, must < 140 characters.
 	 * @param integer $in_reply_to_status_id Optional. The ID of an existing update that you want reply to.	 
-	 * @return array results
+	 * @return object results
 	 */		
 	public function status_update($status, $in_reply_to_status_id = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'update.' . $this->twitty_format;
@@ -192,7 +192,7 @@ class Twitty {
 	 * @param integer $page Optional. Specifies the page of updates, 20/page.
 	 * @param date $since Optional. Narrows the results up to 24 hours old.
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function status_replies($page = null, $since = null, $since_id = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'replies.' . $this->twitty_format;
@@ -214,7 +214,7 @@ class Twitty {
 	 * Returns a single status.
 	 *
 	 * @param integer $id Required. The numerical ID of the status you're trying to retrieve
-	 * @return array results
+	 * @return object results
 	 */		
 	public function status_destroy($id) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'destroy/';
@@ -230,7 +230,7 @@ class Twitty {
 	 *
 	 * @param mixed $id Optional. ID or screen name of the user
 	 * @param integer $page Optional. Specifies the page of updates, 100/page.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function user_friends($id = null, $page = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'friends.' . $this->twitty_format;
@@ -252,7 +252,7 @@ class Twitty {
 	 *
 	 * @param mixed $id Optional. ID or screen name of the user
 	 * @param integer $page Optional. Specifies the page of updates, 100/page.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function user_followers($id = null, $page = null) {
 		$API_request = $this->twitty_base_request['URL_STATUS'] . 'followers.' . $this->twitty_format;
@@ -273,7 +273,7 @@ class Twitty {
 	 * Returns extended information of a given user ID or screen name.
 	 *
 	 * @param mixed $id Required. ID or screen name or email of the user
-	 * @return array results
+	 * @return object results
 	 */		
 	public function user_show($userIdentifier = null) {
 		$API_request = $this->twitty_base_request['URL_USER'] . 'show';
@@ -292,7 +292,7 @@ class Twitty {
 	 * @param integer $page Optional. Specifies the page of updates, 20/page.
 	 * @param date $since Optional. Narrows the results up to 24 hours old.
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function direct_messages($page = null, $since = null, $since_id = null) {
 		$API_request = substr($this->twitty_base_request['URL_DIRECT_MESSAGES'], 0, -1) . '.' . $this->twitty_format;
@@ -317,7 +317,7 @@ class Twitty {
 	 * @param integer $page Optional. Specifies the page of updates, 20/page.
 	 * @param date $since Optional. Narrows the results up to 24 hours old.
 	 * @param integer $since_id Optional. Returns only updates more recent than the specified ID.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function direct_message_sent($page = null, $since = null, $since_id = null) {
 		$API_request = $this->twitty_base_request['URL_DIRECT_MESSAGES'] . 'sent.' . $this->twitty_format;
@@ -341,7 +341,7 @@ class Twitty {
 	 *
 	 * @param mixed $user Required. The recipient.
 	 * @param string $text Required. The message.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function direct_message_new($user, $text) {
 		$API_request = $this->twitty_base_request['URL_DIRECT_MESSAGES'] . 'new.' . $this->twitty_format;
@@ -357,7 +357,7 @@ class Twitty {
 	 * Deletes the direct message specified in the required ID parameter.
 	 *
 	 * @param integer $id Required. The ID of the direct message.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function direct_message_destroy($id) {
 		$API_request = $this->twitty_base_request['URL_DIRECT_MESSAGES'] . 'destroy/';
@@ -374,7 +374,7 @@ class Twitty {
 	 *
 	 * @param mixed $id Required. The ID or the screen name of the user.
 	 * @param boolean $follow Optional. Enable notifications for the target user in addition to becoming friends.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function friendship_create($id, $follow = FALSE) {
 		$API_request = $this->twitty_base_request['URL_FRIENDSHIP'] . 'create/';
@@ -391,7 +391,7 @@ class Twitty {
 	 * Destroys the friendship with the user specified.
 	 *
 	 * @param mixed $id Required. The ID or screen name of the user.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function friendship_destroy($id) {
 		$API_request = $this->twitty_base_request['URL_FRIENDSHIP'] . 'destroy/';
@@ -430,7 +430,7 @@ class Twitty {
 	/**
 	 * Ends the session of the current user.
 	 * 
-	 * @return array results
+	 * @return object results
 	 */		
 	public function account_end_session() {
 		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'end_session.' . $this->twitty_format;
@@ -441,7 +441,7 @@ class Twitty {
 	 * Sets which device Twitter delivers updates to for the authenticating user.
 	 * 
 	 * @param string $device Required. Must be one of: sms, im, none.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function account_delivery_device($device = 'none') {
 		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'update_delivery_device.' . $this->twitty_format;
@@ -457,7 +457,7 @@ class Twitty {
 	 * 
 	 * @param string $element Required. Where could be the color set to.
 	 * @param string $color Required. Hex value of the color.	 
-	 * @return array results
+	 * @return object results
 	 */		
 	public function account_profile_color($element, $color) {
 		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'update_profile_colors.' . $this->twitty_format;
@@ -479,7 +479,7 @@ class Twitty {
 	 * Sets profile image of the the user.
 	 * 			NOT IN USE!!
 	 * @param string $image Required. Where could be the color set to.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function account_profile_image($image = null) {
 		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'update_profile_image.' . $this->twitty_format;
@@ -494,7 +494,7 @@ class Twitty {
 	 * Sets the profile background image of the the user page.
 	 * 			NOT IN USE!
 	 * @param string $image Required. Where could be the color set to.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function account_profile_bg_image($image = null) {
 		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'update_profile_background_image.' . $this->twitty_format;
@@ -520,7 +520,7 @@ class Twitty {
 	 * 
 	 * @param string $element Required. Where could be the color set to.
 	 * @param string $color Required. Hex value of the color.	 
-	 * @return array results
+	 * @return object results
 	 */		
 	public function account_profile($attribute, $value) {
 		$API_request = $this->twitty_base_request['URL_ACCOUNT'] . 'update_profile.' . $this->twitty_format;
@@ -552,7 +552,7 @@ class Twitty {
 	 *
 	 * @param integer $id Optional. The ID or screen name of the user.
 	 * @param integer $page Optional. Specifies the page of updates, 20/page.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function favorites($id = null, $page = null) {
 		$API_request = substr($this->twitty_base_request['URL_FAVORITES'], 0, -1);
@@ -569,7 +569,7 @@ class Twitty {
 	 * Favorites the status specified in the ID parameter as the authenticating user.
 	 *
 	 * @param integer $id Required. The ID of the message.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function favorites_create($id) {
 		$API_request = $this->twitty_base_request['URL_FAVORITES'] . 'create/';
@@ -581,7 +581,7 @@ class Twitty {
 	 * Un-favorites the status specified in the ID parameter as the authenticating user.
 	 *
 	 * @param integer $id Required. The ID of the message.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function favorites_destroy($id) {
 		$API_request = $this->twitty_base_request['URL_FAVORITES'] . 'destroy/';
@@ -593,7 +593,7 @@ class Twitty {
 	 * Enables notifications for updates from the specified user to the authenticating user
 	 *
 	 * @param mixed $id Required. The ID or screenname of the user.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function notification_follow($id) {
 		$API_request = $this->twitty_base_request['URL_NOTIFICATION'] . 'follow/';
@@ -617,7 +617,7 @@ class Twitty {
 	 * Blocks a user to the authenticating user.
 	 *
 	 * @param mixed $id Required. The ID or screenname of the user.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function block_create($id) {
 		$API_request = $this->twitty_base_request['URL_BLOCK'] . 'create/';
@@ -629,7 +629,7 @@ class Twitty {
 	 * Unblocks a user to the authenticating user.
 	 *
 	 * @param mixed $id Required. The ID or screenname of the user.
-	 * @return array results
+	 * @return object results
 	 */		
 	public function block_destroy($id) {
 		$API_request = $this->twitty_base_request['URL_BLOCK'] . 'destroy/';
@@ -640,7 +640,7 @@ class Twitty {
 	/**
 	 * Test a request to the API.
 	 *
-	 * @return array results
+	 * @return object results
 	 */		
 	public function help_test() {
 		$API_request = $this->twitty_base_request['URL_HELP'] . 'test.' . $this->twitty_format;
@@ -650,7 +650,7 @@ class Twitty {
 	/**
 	 * If maintenance mode, true message will show up.
 	 *
-	 * @return array results
+	 * @return object results
 	 */		
 	public function help_downtime_schedule() {
 		$API_request = $this->twitty_base_request['URL_HELP'] . 'downtime_schedule.' . $this->twitty_format;
@@ -726,7 +726,7 @@ class Twitty {
 	 * The results ...
 	 *
 	 * @param mixed $data The result.
-	 * @return array result.
+	 * @return object result.
 	 */		
 	private function result($data) {
 		
@@ -735,7 +735,7 @@ class Twitty {
 		elseif($this->twitty_format == 'rss') $result = 'RSS' . $this->twitty_raise['UNSUPPORTED_FORMAT'];
 		elseif($this->twitty_format == 'atom') $result = 'ATOM' . $this->twitty_raise['UNSUPPORTED_FORMAT'];
 		else $result = $this->twitty_raise['INVALID_FORMAT'];
-		return $result;
+		return (object) $result;
 	}
 	
 	/**
